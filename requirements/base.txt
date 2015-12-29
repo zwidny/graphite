@@ -1,1 +1,11 @@
-Django==1.8.4
+Django<1.9
+python-memcached==1.47
+txAMQP==0.4
+simplejson==2.1.6
+django-tagging
+gunicorn
+pytz
+pyparsing==1.5.7
+cairocffi
+git+git://github.com/graphite-project/whisper.git#egg=whisper
+git+git://github.com/graphite-project/ceres.git#egg=ceres
