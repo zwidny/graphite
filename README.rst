@@ -30,10 +30,9 @@ INSTALL
 
 + Linux Installation
 
+  - Prerequisites are installed on Ubuntu 14.04 LTS with::
 
-- Prerequisites are installed on Ubuntu 14.04 LTS with::
-
-  **sudo apt-get install libffi-dev**
+    **sudo apt-get install libffi-dev**
 
 TODO
 ===============================
