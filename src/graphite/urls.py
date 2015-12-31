@@ -19,23 +19,25 @@ from django.contrib import admin
 
 import url_shortener.views
 import browser.views
+import browser.urls
 import graphite.views
+# import render.urls
+# import composer.urls
+# import metrics.urls
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     # url(r'^render/', include(render.urls),
     # url(r'^composer/', include(composer.urls),
     # url(r'^metrics/', include(metrics.urls),
-    # url(r'^browser/', include(browser.urls),
+    url(r'^browser/', include(browser.urls)),
     # url(r'^account/', include(account.urls),
     # url(r'^dashboard/', include(dashboard.urls),
     # url(r'^whitelist/', include(whitelist.urls),
     # url(r'^version/', include(version.urls),
     # url(r'^events/', include(events.urls),
-    url(r'^s/(?P<path>.*)',
-        url_shortener.views.shorten, name='shorten'),
-    url(r'^S/(?P<link_id>[a-zA-Z0-9]+)/?$',
-        url_shortener.views.follow, name='follow'),
+    url(r'^s/(?P<path>.*)', url_shortener.views.shorten, name='shorten'),
+    url(r'^S/(?P<link_id>[a-zA-Z0-9]+)/?$', url_shortener.views.follow, name='follow'),
     url(r'^$', browser.views.browser, name='browser'),
 
 ]

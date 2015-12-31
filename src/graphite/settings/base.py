@@ -118,3 +118,10 @@ STATICFILES_DIRS = [
 
 # Serving static files during deployment
 STATIC_ROOT = os.path.join(REPO_DIR, 'static')
+
+# Log settings for utils log
+LOG_DIR = os.path.join(REPO_DIR, 'log')
+LOG_ROTATION_COUNT = 1
+LOG_ROTATION = True
+LOG_CACHE_PERFORMANCE = False
+LOG_RENDERING_PERFORMANCE = False
