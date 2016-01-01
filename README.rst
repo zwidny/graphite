@@ -34,6 +34,13 @@ INSTALL
 
     sudo apt-get install libffi-dev
 
+
+News
+===============================
+
+Happy new year! 2016
+
+
 TODO
 ===============================
 
