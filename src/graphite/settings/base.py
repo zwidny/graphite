@@ -125,3 +125,8 @@ LOG_ROTATION_COUNT = 1
 LOG_ROTATION = True
 LOG_CACHE_PERFORMANCE = False
 LOG_RENDERING_PERFORMANCE = False
+
+# Miscellaneous settings
+DOCUMENTATION_URL = "http://graphite.readthedocs.org/"
+STORAGE_DIR = os.path.join(REPO_DIR, 'storage')
+INDEX_FILE = os.path.join(STORAGE_DIR, 'index')

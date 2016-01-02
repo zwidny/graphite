@@ -21,6 +21,7 @@ import url_shortener.views
 import browser.views
 import browser.urls
 import graphite.views
+import composer.urls
 # import render.urls
 # import composer.urls
 # import metrics.urls
@@ -28,7 +29,7 @@ import graphite.views
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     # url(r'^render/', include(render.urls),
-    # url(r'^composer/', include(composer.urls),
+    url(r'^composer/', include(composer.urls)),
     # url(r'^metrics/', include(metrics.urls),
     url(r'^browser/', include(browser.urls)),
     # url(r'^account/', include(account.urls),
