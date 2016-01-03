@@ -25,7 +25,7 @@ REPO_DIR = os.path.dirname(SRC_DIR)
 SECRET_KEY = 'r#@d&afglbl4zv@b#_1z@0_g_7wugu&p^-$kt7cg1zhw$lb5)m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = JAVASCRIPT_DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -119,6 +119,10 @@ STATICFILES_DIRS = [
 # Serving static files during deployment
 STATIC_ROOT = os.path.join(REPO_DIR, 'static')
 
+# Graphite base settings
+CONF_DIR = os.path.join(REPO_DIR, 'config')
+STORAGE_DIR = os.path.join(REPO_DIR, 'storage')
+
 # Log settings for utils log
 LOG_DIR = os.path.join(REPO_DIR, 'log')
 LOG_ROTATION_COUNT = 1
@@ -126,7 +130,11 @@ LOG_ROTATION = True
 LOG_CACHE_PERFORMANCE = False
 LOG_RENDERING_PERFORMANCE = False
 
+# Dashboard settings.
+# # Set to True to require authentication to save or delete dashboards
+DASHBOARD_REQUIRE_AUTHENTICATION = False
+DASHBOARD_CONF = os.path.join(CONF_DIR, 'dashboard.conf')
+
 # Miscellaneous settings
 DOCUMENTATION_URL = "http://graphite.readthedocs.org/"
-STORAGE_DIR = os.path.join(REPO_DIR, 'storage')
 INDEX_FILE = os.path.join(STORAGE_DIR, 'index')

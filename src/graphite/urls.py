@@ -22,6 +22,7 @@ import browser.views
 import browser.urls
 import graphite.views
 import composer.urls
+import dashboard.urls
 # import render.urls
 # import composer.urls
 # import metrics.urls
@@ -33,7 +34,7 @@ urlpatterns = [
     # url(r'^metrics/', include(metrics.urls),
     url(r'^browser/', include(browser.urls)),
     # url(r'^account/', include(account.urls),
-    # url(r'^dashboard/', include(dashboard.urls),
+    url(r'^dashboard/', include(dashboard.urls)),
     # url(r'^whitelist/', include(whitelist.urls),
     # url(r'^version/', include(version.urls),
     # url(r'^events/', include(events.urls),
