@@ -23,8 +23,8 @@ import browser.urls
 import graphite.views
 import composer.urls
 import dashboard.urls
+import events.urls
 # import render.urls
-# import composer.urls
 # import metrics.urls
 
 urlpatterns = [
@@ -37,7 +37,7 @@ urlpatterns = [
     url(r'^dashboard/', include(dashboard.urls)),
     # url(r'^whitelist/', include(whitelist.urls),
     # url(r'^version/', include(version.urls),
-    # url(r'^events/', include(events.urls),
+    url(r'^events/', include(events.urls)),
     url(r'^s/(?P<path>.*)', url_shortener.views.shorten, name='shorten'),
     url(r'^S/(?P<link_id>[a-zA-Z0-9]+)/?$', url_shortener.views.follow, name='follow'),
     url(r'^$', browser.views.browser, name='browser'),

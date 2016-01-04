@@ -44,3 +44,6 @@ docs/_build
 
 # Log
 log
+
+# IDLE
+.idea
