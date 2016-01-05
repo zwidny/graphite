@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import json
+import errno
 
 from django.utils.safestring import mark_safe
 from django.contrib.staticfiles import finders
