@@ -1,6 +1,5 @@
 """tools for utils."""
 # -*- coding: utf-8 -*-
-
 from __future__ import absolute_import
 
 
@@ -22,7 +21,7 @@ def safeMax(args):
 
 
 def safeSum(values):
-    """Return max item from args, not include None, and inf."""
+    """Return item sum in args, not include None, and inf."""
     return sum([v for v in values if v not in (None, INFINITY)])
 
 
