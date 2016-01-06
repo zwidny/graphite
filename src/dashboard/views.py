@@ -4,6 +4,7 @@ import json
 import errno
 
 from django.utils.safestring import mark_safe
+from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.shortcuts import render_to_response
 
