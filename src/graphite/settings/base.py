@@ -119,9 +119,15 @@ STATICFILES_DIRS = [
 # Serving static files during deployment
 STATIC_ROOT = os.path.join(REPO_DIR, 'static')
 
+
 # Graphite base settings
 CONF_DIR = os.path.join(REPO_DIR, 'config')
+# # Storage settings
 STORAGE_DIR = os.path.join(REPO_DIR, 'storage')
+STORAGE_FINDERS = (
+    'utils.finders.standard.StandardFinder',
+)
+STANDARD_DIRS = []
 
 # Log settings for utils log
 LOG_DIR = os.path.join(REPO_DIR, 'log')
@@ -138,3 +144,12 @@ DASHBOARD_CONF = os.path.join(CONF_DIR, 'dashboard.conf')
 # Miscellaneous settings
 DOCUMENTATION_URL = "http://graphite.readthedocs.org/"
 INDEX_FILE = os.path.join(STORAGE_DIR, 'index')
+
+# Cluster settings
+CLUSTER_SERVERS = []
+# # Carbon settings
+CARBONLINK_HOSTS = ["127.0.0.1:7002"]
+CARBONLINK_TIMEOUT = 1.0
+REPLICATION_FACTOR = 1
+CARBONLINK_HASHING_KEYFUNC = None
+

@@ -24,12 +24,12 @@ import graphite.views
 import composer.urls
 import dashboard.urls
 import events.urls
-# import render.urls
+import render.urls
 # import metrics.urls
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    # url(r'^render/', include(render.urls),
+    url(r'^render/', include(render.urls)),
     url(r'^composer/', include(composer.urls)),
     # url(r'^metrics/', include(metrics.urls),
     url(r'^browser/', include(browser.urls)),
