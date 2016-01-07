@@ -3,14 +3,14 @@ from __future__ import absolute_import
 
 import datetime
 import json
+
 import pytz
-
-from django.http import HttpResponse
-from django.utils.timezone import now, make_aware
 from django.contrib.sites.models import RequestSite
+from django.http import HttpResponse
 from django.shortcuts import render_to_response
+from django.utils.timezone import now, make_aware
 
-from render.attime import parseATTime
+from render.utils.attime import parseATTime
 from .models import Event
 
 
