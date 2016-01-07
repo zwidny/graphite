@@ -1,7 +1,39 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from time import time
 
+import csv
+import json
+import math
+from cStringIO import StringIO
+from datetime import datetime
+from httplib import CannotSendRequest
+from random import shuffle
+from time import time
+from urllib import urlencode
+from urlparse import urlsplit, urlunsplit, parse_qs
+
+import pytz
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
+from django.http import HttpResponseServerError, HttpResponseRedirect
+from django.template import Context, loader
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
+from django.utils.cache import add_never_cache_headers, patch_response_headers
+
+from utils.compat import HttpResponse
+from utils import getProfileByUsername, unpickle
+from utils.remote_storage import HTTPConnectionWithTimeout
+from utils.logger import log
+from .utils.evaluator import evaluate_target
+from .utils.attime import parseATTime
+from .utils.tools import PieFunctions
+from .utils.hashing import hashRequest, hashData
 from .utils.glyph import GraphTypes
 
 
@@ -25,8 +57,7 @@ def renderView(request):
         cachedResponse = cache.get(requestKey)
         if cachedResponse:
             log.cache('Request-Cache hit [%s]' % requestKey)
-            log.rendering('Returned cached response in %.6f' %
-                          (time() - start))
+            log.rendering('Returned cached response in %.6f' % (time() - start))
             return cachedResponse
         else:
             log.cache('Request-Cache miss [%s]' % requestKey)
@@ -42,12 +73,11 @@ def renderView(request):
                     raise ValueError("Invalid target '%s'" % target)
                 data.append((name, value))
             else:
-                seriesList = evaluateTarget(requestContext, target)
+                seriesList = evaluate_target(requestContext, target)
 
                 for series in seriesList:
                     func = PieFunctions[requestOptions['pieMode']]
-                    data.append(
-                        (series.name, func(requestContext, series) or 0))
+                    data.append((series.name, func(requestContext, series) or 0))
 
     elif requestOptions['graphType'] == 'line':
         # Let's see if at least our data is cached
@@ -71,9 +101,8 @@ def renderView(request):
                 if not target.strip():
                     continue
                 t = time()
-                seriesList = evaluateTarget(requestContext, target)
-                log.rendering("Retrieval of %s took %.6f" %
-                              (target, time() - t))
+                seriesList = evaluate_target(requestContext, target)
+                log.rendering("Retrieval of %s took %.6f" % (target, time() - t))
                 data.extend(seriesList)
 
             if useCache:
@@ -87,10 +116,8 @@ def renderView(request):
 
             for series in data:
                 for i, value in enumerate(series):
-                    timestamp = datetime.fromtimestamp(
-                        series.start + (i * series.step), requestOptions['tzinfo'])
-                    writer.writerow(
-                        (series.name, timestamp.strftime("%Y-%m-%d %H:%M:%S"), value))
+                    timestamp = datetime.fromtimestamp(series.start + (i * series.step), requestOptions['tzinfo'])
+                    writer.writerow((series.name, timestamp.strftime("%Y-%m-%d %H:%M:%S"), value))
 
             return response
 
@@ -104,39 +131,30 @@ def renderView(request):
                 for series in data:
                     numberOfDataPoints = timeRange / series.step
                     if maxDataPoints < numberOfDataPoints:
-                        valuesPerPoint = math.ceil(
-                            float(numberOfDataPoints) / float(maxDataPoints))
+                        valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
                         secondsPerPoint = int(valuesPerPoint * series.step)
                         # Nudge start over a little bit so that the consolidation bands align with each call
                         # removing 'jitter' seen when refreshing.
-                        nudge = secondsPerPoint + \
-                            (series.start % series.step) - \
-                            (series.start % secondsPerPoint)
+                        nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
                         series.start = series.start + nudge
                         valuesToLose = int(nudge / series.step)
                         for r in range(1, valuesToLose):
                             del series[0]
                         series.consolidate(valuesPerPoint)
-                        timestamps = range(int(series.start), int(
-                            series.end) + 1, int(secondsPerPoint))
+                        timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
                     else:
-                        timestamps = range(int(series.start), int(
-                            series.end) + 1, int(series.step))
+                        timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
                     datapoints = zip(series, timestamps)
-                    series_data.append(
-                        dict(target=series.name, datapoints=datapoints))
+                    series_data.append(dict(target=series.name, datapoints=datapoints))
             else:
                 for series in data:
-                    timestamps = range(int(series.start), int(
-                        series.end) + 1, int(series.step))
+                    timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
                     datapoints = zip(series, timestamps)
-                    series_data.append(
-                        dict(target=series.name, datapoints=datapoints))
+                    series_data.append(dict(target=series.name, datapoints=datapoints))
 
             if 'jsonp' in requestOptions:
                 response = HttpResponse(
-                    content="%s(%s)" % (requestOptions[
-                        'jsonp'], json.dumps(series_data)),
+                    content="%s(%s)" % (requestOptions['jsonp'], json.dumps(series_data)),
                     content_type='text/javascript')
             else:
                 response = HttpResponse(content=json.dumps(series_data),
@@ -152,13 +170,11 @@ def renderView(request):
         if format == 'raw':
             response = HttpResponse(content_type='text/plain')
             for series in data:
-                response.write("%s,%d,%d,%d|" % (
-                    series.name, series.start, series.end, series.step))
+                response.write("%s,%d,%d,%d|" % (series.name, series.start, series.end, series.step))
                 response.write(','.join(map(str, series)))
                 response.write('\n')
 
-            log.rendering('Total rawData rendering time %.6f' %
-                          (time() - start))
+            log.rendering('Total rawData rendering time %.6f' % (time() - start))
             return response
 
         if format == 'svg':
@@ -169,8 +185,7 @@ def renderView(request):
             seriesInfo = [series.getInfo() for series in data]
             pickle.dump(seriesInfo, response, protocol=-1)
 
-            log.rendering('Total pickle rendering time %.6f' %
-                          (time() - start))
+            log.rendering('Total pickle rendering time %.6f' % (time() - start))
             return response
 
     # We've got the data, now to render it
@@ -186,8 +201,7 @@ def renderView(request):
             content="%s(%s)" % (requestOptions['jsonp'], json.dumps(image)),
             content_type='text/javascript')
     else:
-        response = buildResponse(
-            image, 'image/svg+xml' if useSVG else 'image/png')
+        response = buildResponse(image, 'image/svg+xml' if useSVG else 'image/png')
 
     if useCache:
         cache.add(requestKey, response, cacheTimeout)
@@ -207,16 +221,14 @@ def parseOptions(request):
     requestOptions = {}
 
     graphType = queryParams.get('graphType', 'line')
-    assert graphType in GraphTypes, "Invalid graphType '%s', must be one of %s" % (
-        graphType, GraphTypes.keys())
+    assert graphType in GraphTypes, "Invalid graphType '%s', must be one of %s" % (graphType, GraphTypes.keys())
     graphClass = GraphTypes[graphType]
 
     # Fill in the requestOptions
     requestOptions['graphType'] = graphType
     requestOptions['graphClass'] = graphClass
     requestOptions['pieMode'] = queryParams.get('pieMode', 'average')
-    requestOptions['cacheTimeout'] = int(queryParams.get(
-        'cacheTimeout', settings.DEFAULT_CACHE_DURATION))
+    requestOptions['cacheTimeout'] = int(queryParams.get('cacheTimeout', settings.DEFAULT_CACHE_DURATION))
     requestOptions['targets'] = []
 
     # Extract the targets out of the queryParams
@@ -260,7 +272,8 @@ def parseOptions(request):
             val = queryParams[opt]
             if (val.isdigit() or (val.startswith('-') and val[1:].isdigit())) and 'color' not in opt.lower():
                 val = int(val)
-            elif '.' in val and (val.replace('.', '', 1).isdigit() or (val.startswith('-') and val[1:].replace('.', '', 1).isdigit())):
+            elif '.' in val and (
+                val.replace('.', '', 1).isdigit() or (val.startswith('-') and val[1:].replace('.', '', 1).isdigit())):
                 val = float(val)
             elif val.lower() in ('true', 'false'):
                 val = val.lower() == 'true'
@@ -294,10 +307,131 @@ def parseOptions(request):
         requestOptions['startTime'] = startTime
         requestOptions['endTime'] = endTime
         timeRange = endTime - startTime
-        # convert the time delta to seconds
-        queryTime = timeRange.days * 86400 + timeRange.seconds
+        queryTime = timeRange.days * 86400 + timeRange.seconds  # convert the time delta to seconds
         if settings.DEFAULT_CACHE_POLICY and not queryParams.get('cacheTimeout'):
             requestOptions['cacheTimeout'] = max(
                 timeout for period, timeout in settings.DEFAULT_CACHE_POLICY if period <= queryTime)
 
     return (graphOptions, requestOptions)
+
+
+connectionPools = {}
+
+
+def delegateRendering(graphType, graphOptions):
+    start = time()
+    postData = graphType + '\n' + pickle.dumps(graphOptions)
+    servers = settings.RENDERING_HOSTS[:]  # make a copy so we can shuffle it safely
+    shuffle(servers)
+    for server in servers:
+        start2 = time()
+        try:
+            # Get a connection
+            try:
+                pool = connectionPools[server]
+            except KeyError:  # happens the first time
+                pool = connectionPools[server] = set()
+            try:
+                connection = pool.pop()
+            except KeyError:  # No available connections, have to make a new one
+                connection = HTTPConnectionWithTimeout(server)
+                connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
+            # Send the request
+            try:
+                connection.request('POST', '/render/local/', postData)
+            except CannotSendRequest:
+                connection = HTTPConnectionWithTimeout(server)  # retry once
+                connection.timeout = settings.REMOTE_RENDER_CONNECT_TIMEOUT
+                connection.request('POST', '/render/local/', postData)
+            # Read the response
+            response = connection.getresponse()
+            assert response.status == 200, "Bad response code %d from %s" % (response.status, server)
+            contentType = response.getheader('Content-Type')
+            imageData = response.read()
+            assert contentType == 'image/png', "Bad content type: \"%s\" from %s" % (contentType, server)
+            assert imageData, "Received empty response from %s" % server
+            # Wrap things up
+            log.rendering('Remotely rendered image on %s in %.6f seconds' % (server, time() - start2))
+            log.rendering('Spent a total of %.6f seconds doing remote rendering work' % (time() - start))
+            pool.add(connection)
+            return imageData
+        except:
+            log.exception("Exception while attempting remote rendering request on %s" % server)
+            log.rendering('Exception while remotely rendering on %s wasted %.6f' % (server, time() - start2))
+            continue
+
+
+def renderLocalView(request):
+    try:
+        start = time()
+        reqParams = StringIO(request.body)
+        graphType = reqParams.readline().strip()
+        optionsPickle = reqParams.read()
+        reqParams.close()
+        graphClass = GraphTypes[graphType]
+        options = unpickle.loads(optionsPickle)
+        image = doImageRender(graphClass, options)
+        log.rendering("Delegated rendering request took %.6f seconds" % (time() - start))
+        response = buildResponse(image)
+        add_never_cache_headers(response)
+        return response
+    except:
+        log.exception("Exception in graphite.render.views.rawrender")
+        return HttpResponseServerError()
+
+
+def renderMyGraphView(request, username, graphName):
+    profile = getProfileByUsername(username)
+    if not profile:
+        return errorPage("No such user '%s'" % username)
+    try:
+        graph = profile.mygraph_set.get(name=graphName)
+    except ObjectDoesNotExist:
+        return errorPage("User %s doesn't have a MyGraph named '%s'" % (username, graphName))
+
+    request_params = dict(request.REQUEST.items())
+    if request_params:
+        url_parts = urlsplit(graph.url)
+        query_string = url_parts[3]
+        if query_string:
+            url_params = parse_qs(query_string)
+            # Remove lists so that we can do an update() on the dict
+            for param, value in url_params.items():
+                if isinstance(value, list) and param != 'target':
+                    url_params[param] = value[-1]
+            url_params.update(request_params)
+            # Handle 'target' being a list - we want duplicate &target params out of it
+            url_param_pairs = []
+            for key, val in url_params.items():
+                if isinstance(val, list):
+                    for v in val:
+                        url_param_pairs.append((key, v))
+                else:
+                    url_param_pairs.append((key, val))
+
+            query_string = urlencode(url_param_pairs)
+        url = urlunsplit(url_parts[:3] + (query_string,) + url_parts[4:])
+    else:
+        url = graph.url
+    return HttpResponseRedirect(url)
+
+
+def doImageRender(graphClass, graphOptions):
+    pngData = StringIO()
+    t = time()
+    img = graphClass(**graphOptions)
+    img.output(pngData)
+    log.rendering('Rendered PNG in %.6f seconds' % (time() - t))
+    imageData = pngData.getvalue()
+    pngData.close()
+    return imageData
+
+
+def buildResponse(imageData, content_type="image/png"):
+    return HttpResponse(imageData, content_type=content_type)
+
+
+def errorPage(message):
+    template = loader.get_template('500.html')
+    context = Context(dict(message=message))
+    return HttpResponseServerError(template.render(context))

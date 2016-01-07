@@ -4,8 +4,8 @@ from __future__ import absolute_import
 from django.conf import settings
 from utils import epoch
 from utils.logger import log
-from graphite.storage import STORE
-from graphite.readers import FetchInProgress
+from utils.storage import STORE
+from utils.readers import FetchInProgress
 
 from traceback import format_exc
 
