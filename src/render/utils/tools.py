@@ -13,8 +13,8 @@ from os import environ
 from events import models
 from utils import epoch
 from utils.logger import log
+from .grammar import grammar
 from .attime import parseTimeOffset, parseATTime
-from .evaluator import evaluate_target
 
 NAN = float('NaN')
 INF = float('inf')
@@ -51,6 +51,18 @@ UnitSystems = {
         ('s', 1000)),
     'none': [],
 }
+
+
+def evaluate_target(request_context, target):
+    from .evaluator import evaluateTokens
+    tokens = grammar.parseString(target)
+    result = evaluateTokens(request_context, tokens)
+
+    if type(result) is TimeSeries:
+        return [result]  # we have to return a list of TimeSeries objects
+
+    else:
+        return result
 
 
 def format_units(v, step=None, system="si"):
@@ -3714,7 +3726,7 @@ SeriesFunctions = {
 
 # Avoid import circularity
 if not environ.get('READTHEDOCS'):
-    from .evaluator import evaluate_target
+    pass
 
 INFINITY = float('inf')
 

@@ -2,19 +2,8 @@
 from __future__ import absolute_import
 
 import re
-from .grammar import grammar
-from .datalib import fetchData, TimeSeries
 
-
-def evaluate_target(request_context, target):
-    tokens = grammar.parseString(target)
-    result = evaluateTokens(request_context, tokens)
-
-    if type(result) is TimeSeries:
-        return [result]  # we have to return a list of TimeSeries objects
-
-    else:
-        return result
+from .datalib import fetchData
 
 
 def evaluateTokens(requestContext, tokens, replacements=None):

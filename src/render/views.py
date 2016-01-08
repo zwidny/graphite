@@ -13,7 +13,6 @@ from urllib import urlencode
 from urlparse import urlsplit, urlunsplit, parse_qs
 
 import pytz
-
 try:
     import cPickle as pickle
 except ImportError:
@@ -26,11 +25,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.cache import add_never_cache_headers, patch_response_headers
 
-from utils.compat import HttpResponse
 from utils import getProfileByUsername, unpickle
+from utils.compat import HttpResponse
 from utils.remote_storage import HTTPConnectionWithTimeout
 from utils.logger import log
-from .utils.evaluator import evaluate_target
+from render.utils.tools import evaluate_target
 from .utils.attime import parseATTime
 from .utils.tools import PieFunctions
 from .utils.hashing import hashRequest, hashData
