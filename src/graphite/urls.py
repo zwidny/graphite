@@ -25,6 +25,7 @@ import composer.urls
 import dashboard.urls
 import events.urls
 import render.urls
+import account.urls
 # import metrics.urls
 
 urlpatterns = [
@@ -33,7 +34,7 @@ urlpatterns = [
     url(r'^composer/', include(composer.urls)),
     # url(r'^metrics/', include(metrics.urls),
     url(r'^browser/', include(browser.urls)),
-    # url(r'^account/', include(account.urls),
+    url(r'^account/', include(account.urls)),
     url(r'^dashboard/', include(dashboard.urls)),
     # url(r'^whitelist/', include(whitelist.urls),
     # url(r'^version/', include(version.urls),
