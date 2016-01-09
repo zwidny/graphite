@@ -1,22 +1,12 @@
-"""Copyright 2008 Orbitz WorldWide.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 import re
 import json
 from hashlib import md5
 from django.conf import settings
+from django.http import HttpResponse
+from django.template import loader
 from django.shortcuts import render_to_response
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
@@ -39,6 +29,7 @@ def header(request):
 
 def browser(request):
     "View for the top-level frame of the browser UI"
+    template = loader.get_template('browser/browser.html')
     context = {
         'queryString': mark_safe(request.GET.urlencode()),
         'target': request.GET.get('target')
@@ -48,7 +39,7 @@ def browser(request):
     if context['target']:
         context['target'] = context['target'].replace(
             '#', '%23')  # js libs terminate a querystring on #
-    return render_to_response("browser.html", context)
+    return HttpResponse(template.render(context, request))
 
 
 # def search(request):
@@ -64,7 +55,7 @@ def browser(request):
 #             if regex.search(s):
 #                 return True
 #         return False
-# 
+#
 #     results = []
 #
 #     index_file = open(settings.INDEX_FILE)

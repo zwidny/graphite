@@ -1,21 +1,6 @@
-{% load staticfiles %}<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<!-- Copyright 2008 Orbitz WorldWide
+{% load staticfiles %}
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License. -->
-<html>
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-    <title>Graphite Browser Header</title>
+{% block styles %}
     <style>
       html {
         height: 100%;
@@ -67,8 +52,9 @@ limitations under the License. -->
         margin-left: 20px;
       }
     </style>
-  </head>
-  <body>
+{% endblock %}
+
+{% block header %}
     <div class="header">
       <div class="nav">
         <ul>
@@ -78,12 +64,11 @@ limitations under the License. -->
         <li><a href="{% url "dashboard" %}" target="_top">Dashboard</a></li>
         <li><a href="{% url "events" %}" target="_top">Events</a></li>
         {% if user.is_authenticated %}
-          <li class="user_state"><a href="/account/logout/" class="logout" target="_top">Logout</a> <b>{{ user.username }}</b> (<a href="/account/edit/" target="_top">profile</a>)</li>
+          <li class="user_state"><a href="{% url 'account_logout' %}" target="_top">Logout</a> <b>{{ user.username }}</b> (<a href="{% url 'account_edit' %}" target="_top">profile</a>)</li>
         {% else %}
-          <li class="user_state login"><a href="{{login_url}}" target="_top">Login</a></li>
+          <li class="user_state login"><a href="{% url 'account_login' %}" target="_top">Login</a></li>
         {% endif %}
         </ul>
       </div>
     </div>
-  </body>
-</html>
+{% endblock %}
